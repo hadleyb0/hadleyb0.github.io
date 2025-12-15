@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Wordle Mini App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    .app {
+      background: white;
+      padding: 20px 25px 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      text-align: center;
+      width: 320px;
+    }
+
+    h1 {
+      margin-top: 0;
+      letter-spacing: 2px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-rows: repeat(6, 1fr);
+      gap: 6px;
+      margin: 20px 0;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+    }
+
+    .tile {
+      width: 50px;
+      height: 50px;
+      border: 2px solid #ccc;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 24px;
+      font-weight: bold;
+      text-transform: uppercase;
+      background: white;
+    }
+
+    .correct {
+      background: #6aaa64;
+      color: white;
+      border-color: #6aaa64;
+    }
+
+    .present {
+      background: #c9b458;
+      color: white;
+      border-color: #c9b458;
+    }
+
+    .absent {
+      background: #787c7e;
+      color: white;
+      border-color: #787c7e;
+    }
+
+    .message {
+      font-weight: bold;
+      margin-top: 10px;
+      min-height: 24px;
+    }
+
+    .navigation {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.navigation a {
+  text-decoration: none;
+  font-weight: bold;
+  margin: 0 6px;
+}
+
+  </style>
+</head>
+
+<body>
+    <div class="navigation">
+        <a href="#" id="top">Wordle!</a> |
+        <a href="scratch.html">Running</a> |
+        <a href="Brennen_Hadley's_resume.html">Resume</a>
+    </div>
+  <div class="app">
+    <h1>WORDLE</h1>
+
+    <div class="grid" id="grid"></div>
+
+    <div class="message" id="message"></div>
+  </div>
+
+  <script>
+    const WORDS = [
+      "apple", "grape", "train", "chair", "plant",
+      "house", "smile", "light", "water", "brick"
+    ];
+
+    const answer = WORDS[Math.floor(Math.random() * WORDS.length)];
+    const grid = document.getElementById("grid");
+    const message = document.getElementById("message");
+
+    let currentRow = 0;
+    let currentCol = 0;
+    let guesses = Array.from({ length: 6 }, () => Array(5).fill(""));
+
+    // Build grid
+    for (let r = 0; r < 6; r++) {
+      const row = document.createElement("div");
+      row.className = "row";
+
+      for (let c = 0; c < 5; c++) {
+        const tile = document.createElement("div");
+        tile.className = "tile";
+        row.appendChild(tile);
+      }
+
+      grid.appendChild(row);
+    }
+
+    document.addEventListener("keydown", handleKey);
+
+    function handleKey(e) {
+      if (message.textContent) return;
+
+      if (e.key === "Backspace") {
+        if (currentCol > 0) {
+          currentCol--;
+          guesses[currentRow][currentCol] = "";
+          updateGrid();
+        }
+      }
+
+      else if (e.key === "Enter") {
+        if (currentCol === 5) {
+          checkGuess();
+        }
+      }
+
+      else if (/^[a-zA-Z]$/.test(e.key)) {
+        if (currentCol < 5) {
+          guesses[currentRow][currentCol] = e.key.toLowerCase();
+          currentCol++;
+          updateGrid();
+        }
+      }
+    }
+
+    function updateGrid() {
+      const row = grid.children[currentRow];
+      for (let c = 0; c < 5; c++) {
+        row.children[c].textContent = guesses[currentRow][c];
+      }
+    }
+
+    function checkGuess() {
+      const guess = guesses[currentRow].join("");
+
+      const row = grid.children[currentRow];
+      const answerLetters = answer.split("");
+
+      for (let i = 0; i < 5; i++) {
+        const tile = row.children[i];
+
+        if (guess[i] === answer[i]) {
+          tile.classList.add("correct");
+          answerLetters[i] = null;
+        }
+      }
+
+      for (let i = 0; i < 5; i++) {
+        const tile = row.children[i];
+
+        if (!tile.classList.contains("correct")) {
+          const index = answerLetters.indexOf(guess[i]);
+          if (index !== -1) {
+            tile.classList.add("present");
+            answerLetters[index] = null;
+          } else {
+            tile.classList.add("absent");
+          }
+        }
+      }
+
+      if (guess === answer) {
+        message.textContent = "🎉 You Win!";
+        return;
+      }
+
+      currentRow++;
+      currentCol = 0;
+
+      if (currentRow === 6) {
+        message.textContent = `❌ Game Over! Word was "${answer.toUpperCase()}"`;
+      }
+    }
+  </script>
+</body>
+</html>
